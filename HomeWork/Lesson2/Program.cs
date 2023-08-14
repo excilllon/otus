@@ -2,5 +2,12 @@
 
 using Lesson2;
 
-Console.WriteLine(HappyTickets.GetCount(4));
+int val = 0;
+string userInput = null;
+do
+{
+    Console.Write("Введите целочисленное неотрицательное N:");
+    userInput = Console.ReadLine();
+} while (!int.TryParse(userInput, out val) || val < 0);
+Console.WriteLine(HappyTickets.GetCount(val));
 Console.ReadKey();
