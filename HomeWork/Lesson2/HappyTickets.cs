@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace Lesson2
 {
+    /// <summary>
+    /// Подсчет количества счастливых билетов
+    /// </summary>
     public static class HappyTickets
     {
         public static long GetCount(int N)
@@ -19,6 +22,7 @@ namespace Lesson2
                 result = 0;
                 for (var j = 0; j <= i * 9; j++)
                 {
+                    // "Сдвигая" и складывая итоговые суммы для N-1 получаем сумму для N
                     for (var l = 0; l <= 9; l++)
                     {
                         if (j < l || j - l > (i - 1) * 9) continue;
