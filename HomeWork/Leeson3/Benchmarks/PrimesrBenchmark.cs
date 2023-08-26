@@ -6,7 +6,7 @@ namespace Lesson3.Benchmarks
     [SimpleJob]
     public class PrimesBenchmark
     {
-        [Params(10, 1, 2, 3, 4, 5)]
+        [Params(10, 1, 2, 3, 4, 5, 100, 1000, 10000)]
         public int PrimeInVal;
 
         [Benchmark]
