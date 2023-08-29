@@ -1,0 +1,38 @@
+BenchmarkDotNet v0.13.7, Windows 10 (10.0.19045.3324/22H2/2022Update)
+AMD Ryzen 7 2700, 1 CPU, 16 logical and 8 physical cores
+.NET SDK 6.0.316
+  [Host]     : .NET 6.0.21 (6.0.2123.36311), X64 RyuJIT AVX2
+  Job-CUWLHT : .NET 6.0.21 (6.0.2123.36311), X64 RyuJIT AVX2
+
+InvocationCount=1  IterationCount=6  UnrollFactor=1
+WarmupCount=6
+
+|       Method |      N |             Mean |         Error |        StdDev |
+|------------- |------- |-----------------:|--------------:|--------------:|
+|    AddSingle |   1000 |       1,150.5 us |     155.37 us |      40.35 us |
+|    AddFactor |   1000 |         462.4 us |      35.91 us |       9.33 us |
+|    AddVector |   1000 |         435.4 us |      46.12 us |      16.45 us |
+|    AddMatrix |   1000 |       9,569.4 us |     259.80 us |      67.47 us |
+| AddArrayList |   1000 |         124.3 us |      11.67 us |       3.03 us |
+|    AddSingle |  10000 |      90,167.6 us |   4,726.63 us |   1,685.56 us |
+|    AddFactor |  10000 |      44,534.5 us |     893.01 us |     231.91 us |
+|    AddVector |  10000 |      45,314.1 us |     684.31 us |     244.03 us |
+|    AddMatrix |  10000 |   1,105,428.2 us | 207,315.06 us |  73,930.55 us |
+| AddArrayList |  10000 |      13,709.3 us |   4,820.63 us |   1,719.08 us |
+|    AddSingle | 100000 |   9,958,690.9 us | 114,351.82 us |  40,778.96 us |
+|    AddFactor | 100000 |   4,415,693.1 us |  11,763.45 us |   4,194.96 us |
+|    AddVector | 100000 |   4,657,659.2 us |  46,939.66 us |  12,190.08 us |
+|    AddMatrix | 100000 | 114,140,634.9 us | 602,048.88 us | 214,696.43 us |
+| AddArrayList | 100000 |   1,197,975.0 us |   3,813.71 us |   1,360.01 us |
+
+// * Legends *
+  N      : Value of the 'N' parameter
+  Mean   : Arithmetic mean of all measurements
+  Error  : Half of 99.9% confidence interval
+  StdDev : Standard deviation of all measurements
+  1 us   : 1 Microsecond (0.000001 sec)
+
+// ***** BenchmarkRunner: End *****
+Run time: 00:29:36 (1776.51 sec), executed benchmarks: 15
+
+Global total time: 00:29:41 (1781.5 sec), executed benchmarks: 15

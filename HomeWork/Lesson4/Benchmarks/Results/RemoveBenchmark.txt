@@ -1,0 +1,38 @@
+BenchmarkDotNet v0.13.7, Windows 10 (10.0.19045.3324/22H2/2022Update)
+AMD Ryzen 7 2700, 1 CPU, 16 logical and 8 physical cores
+.NET SDK 6.0.316
+  [Host]     : .NET 6.0.21 (6.0.2123.36311), X64 RyuJIT AVX2
+  Job-CUWLHT : .NET 6.0.21 (6.0.2123.36311), X64 RyuJIT AVX2
+
+InvocationCount=1  IterationCount=6  UnrollFactor=1
+WarmupCount=6
+
+|          Method |      N |             Mean |           Error |        StdDev |
+|---------------- |------- |-----------------:|----------------:|--------------:|
+|    RemoveSingle |   1000 |         702.8 us |        81.53 us |      29.07 us |
+|    RemoveFactor |   1000 |         469.1 us |        33.77 us |      12.04 us |
+|    RemoveVector |   1000 |         494.9 us |       237.09 us |      61.57 us |
+|    RemoveMatrix |   1000 |       9,445.4 us |        59.22 us |      15.38 us |
+| RemoveArrayList |   1000 |         127.4 us |        36.39 us |      12.98 us |
+|    RemoveSingle |  10000 |      73,563.7 us |     5,376.01 us |   1,917.14 us |
+|    RemoveFactor |  10000 |      44,332.7 us |       432.33 us |     154.17 us |
+|    RemoveVector |  10000 |      44,585.2 us |     1,032.41 us |     368.17 us |
+|    RemoveMatrix |  10000 |   1,030,125.5 us |     1,661.13 us |     431.39 us |
+| RemoveArrayList |  10000 |      11,239.3 us |       157.93 us |      41.01 us |
+|    RemoveSingle | 100000 |   9,003,982.8 us | 2,409,271.08 us | 859,169.27 us |
+|    RemoveFactor | 100000 |   4,420,810.6 us |    37,028.37 us |  13,204.67 us |
+|    RemoveVector | 100000 |   4,420,079.7 us |    20,510.35 us |   5,326.47 us |
+|    RemoveMatrix | 100000 | 114,894,276.4 us | 2,966,259.16 us | 770,328.08 us |
+| RemoveArrayList | 100000 |   1,175,788.4 us |    42,693.64 us |  15,224.96 us |
+
+// * Legends *
+  N      : Value of the 'N' parameter
+  Mean   : Arithmetic mean of all measurements
+  Error  : Half of 99.9% confidence interval
+  StdDev : Standard deviation of all measurements
+  1 us   : 1 Microsecond (0.000001 sec)
+
+// ***** BenchmarkRunner: End *****
+Run time: 00:46:26 (2786.26 sec), executed benchmarks: 15
+
+Global total time: 00:46:31 (2791.18 sec), executed benchmarks: 15
