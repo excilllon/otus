@@ -37,28 +37,25 @@ namespace Lesson6
                 }
         }
         /// <summary>
-        /// Сортировка пузырьком с выбором
+        /// Оптимизированная сортировка пузырьком
         /// </summary>
-        public void BubbleWithSelection()
+        public void BubbleOptimized()
         {
+            int lastComparison = _array.Length - 1;
             for (var i = _array.Length - 1; i > 0; i--)
             {
                 bool swapped = false;
-                var max = i;
-                for (var j = 0; j < i; j++)
+                int currentSwap = -1;
+                for (var j = 0; j < lastComparison; j++)
                 {
-                    if (_array[j] > _array[j + 1])
-                    {
-                        (_array[j], _array[j + 1]) = (_array[j + 1], _array[j]);
-                        swapped = true;
-                    }
-
-                    if (_array[j] > _array[max])
-                        max = j;
+                    if (_array[j] <= _array[j + 1]) continue;
+                    (_array[j], _array[j + 1]) = (_array[j + 1], _array[j]);
+                    swapped = true;
+                    currentSwap = j;
                 }
                 // если обменов не было значит массив уже отсортирован
-                if (!swapped) break;
-                if (max != i) (_array[i], _array[max]) = (_array[max], _array[i]);
+                if (!swapped) return;
+                lastComparison = currentSwap;
             }
         }
         /// <summary>

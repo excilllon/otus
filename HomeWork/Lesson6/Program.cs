@@ -15,7 +15,7 @@ string? userChoice = null;
 
 start: Console.WriteLine("Выберите алгоритм или введите x, чтобы выйти: ");
 Console.WriteLine("1. Простая сортировка пузырьком");
-Console.WriteLine("2. Сортировка пузырьком с выбором");
+Console.WriteLine("2. Оптимизированная сортировка пузырьком");
 Console.WriteLine("3. Сортировка вставкой");
 Console.WriteLine("4. Сортировка вставкой со сдвигом");
 Console.WriteLine("5. Сортировка вставкой со бинарном поиском");
@@ -32,7 +32,7 @@ switch (userChoice)
         sortings.Bubble();
         Console.WriteLine(sortings.PrintArray()); break;
     case "2":
-        sortings.BubbleWithSelection();
+        sortings.BubbleOptimized();
         Console.WriteLine(sortings.PrintArray()); break;
     case "3":
         sortings.Insertion(); 

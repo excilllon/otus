@@ -42,11 +42,11 @@ namespace Lesson6.Benchmarks
         }
         
         [Benchmark]
-        public void BubbleWithSelection()
+        public void BubbleOptimized()
         {
             var sortings = new Sortings();
             sortings.SetArray(data);
-            sortings.BubbleWithSelection();
+            sortings.BubbleOptimized();
         } 
         
         [Benchmark]
