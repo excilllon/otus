@@ -45,8 +45,8 @@ namespace Lesson5
                         | ((notA & bitsPos) >> 1 | (notH & bitsPos) << 1)
                         | ((notA & bitsPos) >> 9 | bitsPos >> 8 | (notH & bitsPos) >> 7);
             return (_bitCounter.CountBits(availableMoves), availableMoves);
-        } 
-        
+        }
+
         /// <summary>
         /// Ход ладьей
         /// </summary>
@@ -56,7 +56,7 @@ namespace Lesson5
         {
             ulong verticalLine = 0x101010101010101;
             ulong horizontalLine = 0xff;
-            var availableMoves = verticalLine << (position % 8) ^ (horizontalLine << (position/8*8));
+            var availableMoves = verticalLine << (position & 7) ^ (horizontalLine << (position >> 3 << 3));
             return (_bitCounter.CountBits(availableMoves), availableMoves);
         }
     }
