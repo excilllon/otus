@@ -157,6 +157,7 @@
                 while (curEntry != null)
                 {
                     if (curEntry.Value.Equals(value)) return true;
+                    curEntry = curEntry.Next;
                 }
             }
 
