@@ -11,66 +11,92 @@ namespace Lesson10
     /// </summary>
     public class AVLTree : BSTree
     {
-        //protected override TreeNode? Remove(TreeNode? node, int x)
-        //{
+        protected override TreeNode? Remove(TreeNode? node, int x)
+        {
+            if (node == null) return node;
+
+            if (node.Key > x)
+                node.Left = Remove(node.Left, x);
             
-        //    if (node == null) return node;
+            else if (node.Key < x)
+                node.Right = Remove(node.Right, x);
 
-        //    if (node.Key > x)
-        //        node.Left = Remove(node.Left, x);
-            
+            else
+            {
+                if (node.Left == null || node.Right == null)
+                {
+                    node = node.Right ?? node.Left;
+                }
+                else
+                {
+                    TreeNode nodeParent = node;
+                    var curNode = node.Right;
+                    while (curNode.Left != null)
+                    {
+                        nodeParent = curNode;
+                        curNode = curNode.Left;
+                    }
 
-        //    if (node.Key < x)
-        //        node.Right = Remove(node.Right, x);
+                    if (nodeParent != node)
+                    {
+                        nodeParent.Left = curNode.Right;
+                    }
+                    else
+                    {
+                        nodeParent.Right = curNode.Right;
+                    }
 
-        //    if (node.Left == null || node.Right == null)
-        //    {
-        //        node = node.Right ?? node.Left;
-        //    }
-
-        //    TreeNode nodeParent = node;
-        //    var curNode = node.Right;
-        //    while (curNode.Left != null)
-        //    {
-        //        nodeParent = curNode;
-        //        curNode = curNode.Left;
-        //    }
-
-        //    if (nodeParent != node)
-        //    {
-        //        nodeParent.Left = curNode.Right;
-        //    }
-        //    else
-        //    {
-        //        nodeParent.Right = curNode.Right;
-        //    }
-        //    node.Key = curNode.Key;
-        //}
+                    node.Key = curNode.Key;
+                }
+            }
+            if (node == null) return node; 
+            node.Height = 1 + Math.Max(node.Left?.Height ?? 0, node.Right?.Height ?? 0);
+            return RebalanceOnDelete(node, x);
+        }
 
         protected override TreeNode Insert(TreeNode? node, int x)
         {
             if (node == null) return new TreeNode() { Key = x };
             if (node.Key < x)
                 node.Right = Insert(node.Right, x);
-            if (node.Key > x)
+            else if (node.Key > x)
                 node.Left = Insert(node.Left, x);
-            else return node;
+            else 
+                return node;
 
             node.Height = 1 + Math.Max(node.Left?.Height ?? 0, node.Right?.Height ?? 0);
-            return Rebalance(node, x);
+            return RebalanceOnInsert(node, x);
         }
 
-        private TreeNode Rebalance(TreeNode node, int x)
+        private TreeNode RebalanceOnInsert(TreeNode node, int key)
         {
-            var balance = node?.Left?.Height ?? 0 - node?.Right?.Height ?? 0;
+            var balance = GetBalance(node);
             return balance switch
             {
-                > 1 when x < node.Left.Key => SmallRightRotation(node),
-                < -1 when x > node.Right.Key => SmallLeftRotation(node),
-                > 1 when x > node.Left.Key => BigRightRotation(node),
-                < -1 when x < node.Right.Key => BigLeftRotation(node),
+                > 1 when key < node.Left.Key => SmallRightRotation(node),
+                < -1 when key > node.Right.Key => SmallLeftRotation(node),
+                > 1 when key > node.Left.Key => BigRightRotation(node),
+                < -1 when key < node.Right.Key => BigLeftRotation(node),
                 _ => node
             };
+        }
+
+        private TreeNode RebalanceOnDelete(TreeNode node, int key)
+        {
+            var balance = GetBalance(node);
+            return balance switch
+            {
+                > 1 when GetBalance(node.Left) >=0 => SmallRightRotation(node),
+                < -1 when GetBalance(node.Right) <=0 => SmallLeftRotation(node),
+                > 1 when GetBalance(node.Left) < 0 => BigRightRotation(node),
+                < -1 when GetBalance(node.Right) > 0 => BigLeftRotation(node),
+                _ => node
+            };
+        }
+
+        private static int GetBalance(TreeNode node)
+        {
+            return (node?.Left?.Height ?? 0) - (node?.Right?.Height ?? 0);
         }
 
         /// <summary>

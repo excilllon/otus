@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Lesson10
+﻿namespace Lesson10
 {
+    /// <summary>
+    /// Двоичное дерево поиска
+    /// </summary>
     public class BSTree
     {
         protected TreeNode? _rootNode;
