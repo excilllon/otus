@@ -24,6 +24,6 @@ using Lesson10.Benchmarks;
 //    _randomAvlTreeForRemove.Remove(data);
 //}
 
-//BenchmarkRunner.Run<BSTreeBenchmark>();
+BenchmarkRunner.Run<BSTreeBenchmark>();
 BenchmarkRunner.Run<AVLTreeBenchmark>();
 Console.ReadLine();
