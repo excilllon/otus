@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Leeson3\Lesson3.csproj" />
+    <ProjectReference Include="..\Leeson3\Lesson3. Number Algo.csproj" />
     <ProjectReference Include="..\TestCaseReader\TestCaseReader.csproj" />
   </ItemGroup>
 

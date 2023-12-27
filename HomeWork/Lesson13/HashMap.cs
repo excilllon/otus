@@ -1,7 +1,7 @@
 ﻿namespace Lesson13
 {
     /// <summary>
-    /// Реализация хеш-таблицы
+    /// Реализация хеш-таблицы методом цепочек
     /// </summary>
     /// <typeparam name="K"></typeparam>
     /// <typeparam name="V"></typeparam>
