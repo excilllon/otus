@@ -4,5 +4,5 @@ using BenchmarkDotNet.Running;
 using Lesson12.Benchmarks;
 
 BenchmarkRunner.Run<SplayTreeBenchmark>();
-//BenchmarkRunner.Run<RandomTreeBenchmark>();
+BenchmarkRunner.Run<RandomTreeBenchmark>();
 Console.ReadLine();
