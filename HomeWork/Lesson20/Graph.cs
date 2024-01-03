@@ -5,6 +5,9 @@
     /// </summary>
     public sealed class Graph
     {
+        /// <summary>
+        /// 1й индекс - номер вершины, 2й индекс - номер смежной вершины, 3й индекс - стоимость ребра между этими верщинами
+        /// </summary>
         private readonly int[][][] _adjVec;
         private readonly Edge[] _edges;
         private readonly int _sMax;
@@ -44,9 +47,9 @@
         }
 
         /// <summary>
-        /// Топологическая сортировка по алгоритму Демукрона
+        /// Поиск минимально связанного графа по алгоритму Крускала
         /// </summary>
-        /// <returns>Массив уровней с номерами вершин на каждом уровне</returns>
+        /// <returns>Массив ребер</returns>
         public Edge[] MinSpanTreeByKruskal()
         {
             var results = new Edge[_sMax - 1];
@@ -99,6 +102,9 @@
             } 
         } 
 
+        /// <summary>
+        /// Подмножество вершин
+        /// </summary>
         private class SubSet
         {
             public SubSet(int v)
