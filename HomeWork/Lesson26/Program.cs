@@ -18,6 +18,9 @@ for (var row = 0; row < searches.GetLength(0); row++)
     Console.Write("Конечный автомат: ");
     Console.WriteLine(searches[row, 0].SearchStateMachine(searches[row, 1]));
 
+    Console.Write("\"Медленный\" Алгоритм Кнута-Морриса-Пратта: ");
+    Console.WriteLine(searches[row, 0].SearchKMPSlow(searches[row, 1]));
+
     Console.Write("Алгоритм Кнута-Морриса-Пратта: ");
     Console.WriteLine(searches[row, 0].SearchKMP(searches[row, 1]));
 

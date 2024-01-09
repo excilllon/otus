@@ -3,6 +3,25 @@
     internal static class SearchKMPExtension
     {
         /// <summary>
+        /// Поиск шаблона с медленным созданием таблицы Пи-функции
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="pattern"></param>
+        /// <returns></returns>
+        public static int SearchKMPSlow(this string value, string pattern)
+        {
+            if (string.IsNullOrEmpty(value) || string.IsNullOrEmpty(pattern)) return -1;
+            var pi = CreatePi(pattern + "@" + value);
+            for (var q = 0; q < pi.Length; q++)
+            {
+                // возвращаем первый найденный
+                if (pi[q] == pattern.Length) return q - pattern.Length - pattern.Length - 1;
+            }
+            return -1;
+        }
+
+
+        /// <summary>
         /// Создание таблицы Пи-функции, неоптимальный вариант O(n^3)
         /// </summary>
         /// <param name="pattern"></param>
