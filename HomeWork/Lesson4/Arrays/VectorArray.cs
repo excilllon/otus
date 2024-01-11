@@ -58,6 +58,11 @@ namespace Lesson4.Arrays
             _size++;
         }
 
+        public void Add(E item)
+        {
+            Add(item, _size);
+        }
+
         public E Remove(int index)
         {
             if (index < 0) throw new ArgumentOutOfRangeException("index");
@@ -100,6 +105,6 @@ namespace Lesson4.Arrays
             set => _array[key] = value;
         }
 
-        public int Length => _array.Length;
+        public int Length => _size;
     }
 }
