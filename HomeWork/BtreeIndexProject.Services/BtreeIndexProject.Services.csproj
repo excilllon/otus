@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BtreeIndexProject.Abstractions\BtreeIndexProject.Abstractions.csproj" />
+    <ProjectReference Include="..\BtreeIndexProject.Model\BtreeIndexProject.Model.csproj" />
+    <ProjectReference Include="..\Lesson13\Lesson13.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Indexing\" />
+    <Folder Include="QueryParsers\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
+  </ItemGroup>
+
+</Project>

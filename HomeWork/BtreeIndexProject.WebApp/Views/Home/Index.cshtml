@@ -1,0 +1,49 @@
+﻿@using DevExtreme.AspNet.Mvc
+@{
+	ViewData["Title"] = "Home Page";
+}
+
+
+<div class="left-content">
+	@(Html.DevExtreme().TreeView())
+</div>
+<div class="right-content">
+	<span>Область запроса</span>
+	@(Html.DevExtreme().TextArea()
+		.ID("query-text")
+		.Value("gggg")
+		.Height(500))
+	
+	<div class="dx-field">
+		@(Html.DevExtreme().Button()
+			.Type(ButtonType.Normal)
+				.OnClick("executeQuery")
+			.Icon("check")
+			.Text("Выполнить"))
+	</div>
+	<div class="sub-title" id="reultsView">
+		@{
+			await Html.RenderPartialAsync("_ResultsPartialView");
+		} 
+	</div>
+</div>
+
+<script>
+	function executeQuery() {
+		var queryTextArea = $("#query-text").dxTextArea("instance");
+		var query = queryTextArea.option("value");
+		$.ajax({
+			type: "POST",
+			url: 'Home/ExecuteQuery',
+			data: JSON.stringify({ query: query }),
+			dataType: "html",
+			contentType: "application/json",
+			success: function(data) {
+				$("#reultsView").html(data);
+			},
+			error: function(result) {
+				alert("fail");
+			}
+		});
+	}
+</script>
