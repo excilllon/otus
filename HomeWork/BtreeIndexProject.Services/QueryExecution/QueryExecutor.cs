@@ -1,4 +1,5 @@
-﻿using BtreeIndexProject.Abstractions;
+﻿using System.Diagnostics;
+using BtreeIndexProject.Abstractions;
 using BtreeIndexProject.Abstractions.Indexing;
 using BtreeIndexProject.Model;
 
@@ -8,18 +9,24 @@ namespace BtreeIndexProject.Services.QueryExecution
 	{
 		private readonly IMetaDataManager _metaDataManager;
 		private readonly IIndexWriter _indexWriter;
+		private readonly IIndexReader _indexReader;
 
-		public QueryExecutor(IMetaDataManager metaDataManager, IIndexWriter indexWriter)
+		public QueryExecutor(IMetaDataManager metaDataManager, IIndexWriter indexWriter, IIndexReader indexReader)
 		{
 			_metaDataManager = metaDataManager;
 			_indexWriter = indexWriter;
+			_indexReader = indexReader;
 		}
 		public async Task<QueryResult> Execute(QueryModelInput model)
 		{
 			if (string.IsNullOrEmpty(model.Query)) return new QueryResult();
 			var queryStatement = model.Query.ToUpperInvariant().Split(' ').Select(q => q.Trim()).ToArray();
 			if(queryStatement.Length == 0) return new QueryResult();
-			return await GetConcreteExecutor(queryStatement).Execute(model);
+			Stopwatch stopwatch = Stopwatch.StartNew();
+			var result = await GetConcreteExecutor(queryStatement).Execute(model);
+			stopwatch.Stop();
+			result.ExecutionTime = stopwatch.ElapsedMilliseconds.ToString();
+			return result;
 		}
 
 		private IQueryExecutor GetConcreteExecutor(string[] queryParts)
@@ -27,8 +34,7 @@ namespace BtreeIndexProject.Services.QueryExecution
 			var statement = queryParts[0];
 			return statement switch
 			{
-				"SELECT" => new SelectExecutor(queryParts),
-				"UPDATE" => new UpdateQueryExecutor(queryParts),
+				"SELECT" => new SelectExecutor(_metaDataManager, _indexReader),
 				"INSERT" => new InsertQueryExecutor(queryParts),
 				"CREATE" => new CreateIndexExecutor(_indexWriter),
 				_ => new InvalidStatementExecutor(queryParts)

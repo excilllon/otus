@@ -16,11 +16,12 @@ html {
 body {
     height: 1200px;
     display: flex;
+    overflow: hidden;
 }
 
 .left-content {
     display: inline-block;
-    width: 10%;
+    width: 20%;
     padding: 0 10px 10px;
     background-color: rgba(191, 191, 191, 0.15);
     box-shadow: -5px 0px 14px -8px rgba(0, 0, 0, 0.25) inset;
@@ -28,11 +29,13 @@ body {
 
 .right-content {
     right: 0;
-    width: 85%;
+    width: 95%;
     left: 220px;
     top: 0;
     height: 100%;
     margin-left: 15px;
+    display: flex;
+    flex-direction: column;
 }
 
 .container {
@@ -50,4 +53,18 @@ body {
 
 .dx-field {
     margin-top: 5px;
+}
+
+.sub-title {
+    height: 50%;
+}
+
+#output textarea {
+    font-size: 24px;
+    color: red;
+}
+
+#query-text textarea {
+    font-size: 24px;
+    font-weight: 400;
 }

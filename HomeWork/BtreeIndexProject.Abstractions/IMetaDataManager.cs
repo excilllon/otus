@@ -19,4 +19,15 @@ public interface IMetaDataManager
 	/// <returns></returns>
 	ColumnMetaData? GetColumnByName(string tableName, string columnName);
 	Task AddIndexToMetaData(string tableName, TableIndex newIndex);
+	/// <summary>
+	/// Возвращает индексы по колонке
+	/// </summary>
+	/// <param name="tableName"></param>
+	/// <param name="columnName"></param>
+	/// <returns></returns>
+	List<TableIndex> GetIndexByColumnName(string tableName, string columnName);
+
+	string GetTableFileName(string tableName);
+
+	List<TableIndex> GetTableAllTableIndices(string tableName);
 }

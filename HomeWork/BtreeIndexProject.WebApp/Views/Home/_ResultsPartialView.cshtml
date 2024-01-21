@@ -1,1 +1,39 @@
-﻿@(Html.DevExtreme().DataGrid().ID("gridContainer"))
+﻿@model BtreeIndexProject.Abstractions.QueryResult
+
+
+@(Html.DevExtreme().TabPanel()
+	.ID("tabpanel")
+	.NoDataText("")
+	.Height("95%")
+	.Items(cfg =>
+	{
+
+		if (!string.IsNullOrEmpty(Model?.ErrorMessage) || !string.IsNullOrEmpty(Model?.UserMessage))
+		{
+			cfg.Add().Title("Вывод").Template(@<text>@(Html.DevExtreme().TextArea().ID("output").Height("100%").Value($">> {Model?.ErrorMessage ?? Model?.UserMessage}"))</text>);
+		}
+		
+		if (Model != null && string.IsNullOrEmpty(Model.ErrorMessage))
+		{
+			cfg.Add().Title("Результаты").Template(@<text>
+				                                       @(Html.DevExtreme()
+					                                       .DataGrid()
+															.Height("493px")
+					                                       .Scrolling(cfg => cfg.ShowScrollbar(ShowScrollbarMode.Always))
+					                                       .ID("gridContainer")
+					                                       .Columns(columns =>
+					                                       {
+						                                       foreach (var columnModel in Model.Columns)
+						                                       {
+							                                       columns.Add().DataField(columnModel);
+						                                       }	
+					                                       }).DataSource(Model.TableRows))
+			                                       </text>);
+		}
+	}))
+@if (Model != null)
+{
+	<div class="dx-field-label">Выполнено за @Model.ExecutionTime мс</div>
+}
+
+

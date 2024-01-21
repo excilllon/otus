@@ -13,6 +13,7 @@ builder.Services.AddControllersWithViews().AddJsonOptions(options => options.Jso
 builder.Services.AddSingleton<IMetaDataManager, MetaDataManager>();
 builder.Services.AddTransient<IQueryExecutor, QueryExecutor>();
 builder.Services.AddTransient<IIndexWriter, IndexManager>();
+builder.Services.AddTransient<IIndexReader, IndexManager>();
 builder.Services.AddHostedService<DbmsInitializer>();
 
 var app = builder.Build();

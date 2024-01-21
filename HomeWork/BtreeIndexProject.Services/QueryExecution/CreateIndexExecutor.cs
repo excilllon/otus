@@ -28,14 +28,15 @@ namespace BtreeIndexProject.Services.QueryExecution
 			try
 			{
 				await _indexWriter.CreateIndex(tableName, indexName, columnName);
-
+				return new QueryResult()
+				{
+					UserMessage = "Индекс создан"
+				};
 			}
 			catch (Exception ex)
 			{
 				return new IndexCreateFailResult(ex.Message);
 			}
-
-			return new InvalidSyntaxResult();
 		}
 	}
 }

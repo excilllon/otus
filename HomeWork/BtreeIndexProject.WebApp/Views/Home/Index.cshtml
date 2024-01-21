@@ -5,7 +5,12 @@
 
 
 <div class="left-content">
-	@(Html.DevExtreme().TreeView())
+	@(Html.DevExtreme().TreeView()
+		.DataSource(d => d.Mvc().LoadAction("GetHierarchicalData"))
+		.DisplayExpr("Name")
+		.SelectionMode(NavSelectionMode.Single)
+		.ExpandedExpr("Expanded")
+		.ItemsExpr("Items"))
 </div>
 <div class="right-content">
 	<span>Область запроса</span>
@@ -17,32 +22,52 @@
 	<div class="dx-field">
 		@(Html.DevExtreme().Button()
 			.Type(ButtonType.Normal)
-				.OnClick("executeQuery")
+			.OnClick("executeQuery")
 			.Icon("check")
 			.Text("Выполнить"))
 	</div>
-	<div class="sub-title" id="reultsView">
+	@(Html.DevExtreme().Toast().ID("toast").DisplayTime(600))
+	<div class="sub-title" id="resultsView">
 		@{
 			await Html.RenderPartialAsync("_ResultsPartialView");
 		} 
 	</div>
+	@(Html.DevExtreme().LoadPanel()
+		.ID("loadPanel")
+		.Message("Выполнение запроса...")
+		.ShadingColor("rgba(0,0,0,0.4)")
+		.Position(p => p.Of("#resultsView"))
+		.Visible(false)
+		.ShowIndicator(true)
+		.ShowPane(true)
+		.Shading(true)
+		.HideOnOutsideClick(false))
 </div>
 
 <script>
 	function executeQuery() {
 		var queryTextArea = $("#query-text").dxTextArea("instance");
 		var query = queryTextArea.option("value");
+		var loadPanel = $("#loadPanel").dxLoadPanel("instance");
+		loadPanel.show();
 		$.ajax({
 			type: "POST",
+			timeout: 3000000,
 			url: 'Home/ExecuteQuery',
 			data: JSON.stringify({ query: query }),
 			dataType: "html",
 			contentType: "application/json",
 			success: function(data) {
-				$("#reultsView").html(data);
+				$("#resultsView").html(data);
+				loadPanel.hide();
 			},
 			error: function(result) {
-				alert("fail");
+				$("#toast").dxToast("instance").option({
+					type: "error",
+					message: "Ошибка при выполнении запроса",
+					visible: true
+				});
+				loadPanel.hide();
 			}
 		});
 	}

@@ -7,8 +7,9 @@ using Microsoft.Extensions.Configuration;
 
 namespace BtreeIndexProject.Services.Indexing
 {
-    public class IndexManager : IIndexWriter
+	public class IndexManager : IIndexWriter, IIndexReader
 	{
+		private const int RowSize = 513;
 		private readonly IMetaDataManager _metaDataManager;
 		private readonly string? _dbPath;
 
@@ -23,6 +24,8 @@ namespace BtreeIndexProject.Services.Indexing
 			var columnForIndex = _metaDataManager.GetColumnByName(tableName, columnName );
 			if (columnForIndex == null) throw new Exception($"Колонка {columnName} не найдена в таблице {tableName}");
 			if (!Directory.Exists(_dbPath)) throw new Exception($"Путь {_dbPath} не найден");
+			if (_metaDataManager.GetIndexByColumnName(tableName, columnName)
+			    .Any(idx => idx.Name == indexName.ToUpperInvariant())) throw new Exception("Индекс с таким названием уже существует");
 
 			var fileName = Path.Combine(_dbPath, tableName + ".csv");
 
@@ -47,18 +50,38 @@ namespace BtreeIndexProject.Services.Indexing
 			var indexFileName = Path.Combine(_dbPath, indexName);
 			using var btree = new BtreeFile(indexFileName, 10);
 			await btree.InitTree();
-			var byteBuffer = new byte[513];
+			var byteBuffer = new byte[RowSize];
 			long streamOffset = 0;
 			int i = 0;
-			while (await streamReader.ReadAsync(byteBuffer, 0, 513) > 0)
+			while (await streamReader.ReadAsync(byteBuffer, 0, RowSize) > 0)
 			{
 				var row = Encoding.UTF8.GetString(byteBuffer);
 				if (row == null) continue;
 				var cells = row.Split(';');
 				await btree.Insert(int.Parse(cells[columnIndex]), streamOffset);
 				streamOffset = streamReader.Position;
-				if (i++ > 1000) break;
 			}
 		}
+
+		/// <summary>
+		/// Поиск смещения строки по ключу
+		/// </summary>
+		/// <param name="indexName"></param>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		/// <exception cref="Exception"></exception>
+		public async Task<long?> ReadIndex(string indexName, int value)
+		{
+			if (!Directory.Exists(_dbPath)) throw new Exception($"Путь {_dbPath} не найден");
+			var indexFileName = Path.Combine(_dbPath, indexName);
+			if (!File.Exists(indexFileName)) throw new Exception($"Файл индекса {indexName} не найден");
+
+			using var btree = new BtreeFile(indexFileName, 10);
+			await btree.InitTree();
+
+			var rowOffset = await btree.Search(value);
+			return rowOffset;
+		}
+
 	}
 }

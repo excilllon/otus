@@ -1,6 +1,4 @@
-﻿using System.Runtime.ConstrainedExecution;
-
-namespace BtreeIndexProject.Services.BTreeFile
+﻿namespace BtreeIndexProject.Services.BTreeFile
 {
 	internal class BtreeFile : IDisposable
 	{
@@ -41,14 +39,14 @@ namespace BtreeIndexProject.Services.BTreeFile
 		/// <param name="searchKey"></param>
 		/// <param name="node"></param>
 		/// <returns></returns>
-		private async Task<BTreeFileNode>? Search(int searchKey, BTreeFileNode node)
+		private async Task<long?> Search(int searchKey, BTreeFileNode node)
 		{
 			// Find the first key greater than or equal to k
 			int i = 0;
 			while (i < node.CurrentKeysCount && searchKey.CompareTo(node.Keys[i].key) > 0)
 				i++;
 
-			if (node.Keys[i].key.Equals(searchKey)) return node;
+			if (node.Keys[i].key.Equals(searchKey)) return node.Keys[i].offset;
 
 			// Если достигли листов и не нашли ключ, значит его нет
 			if (node.IsLeaf) return null;
@@ -57,7 +55,7 @@ namespace BtreeIndexProject.Services.BTreeFile
 			return await Search(searchKey, await ReadNodeFromBlock(node.Childs[i]));
 		}
 
-		public async Task<BTreeFileNode>? Search(int k)
+		public async Task<long?> Search(int k)
 		{
 			return await Search(k, root);
 		}
@@ -219,7 +217,7 @@ namespace BtreeIndexProject.Services.BTreeFile
 			if (node.BlockNumber == -1)
 			{
 				_fileStream.Seek(0, SeekOrigin.End);
-				node.BlockNumber = _currentBlockNumber++;
+				node.BlockNumber = ++_currentBlockNumber;
 			}
 			else
 			{
@@ -230,7 +228,7 @@ namespace BtreeIndexProject.Services.BTreeFile
 			// Минимальная степень
 			await _fileStream.WriteAsync(BitConverter.GetBytes(_minDegree));
 			// CurrentKeysCount
-			await _fileStream.WriteAsync(BitConverter.GetBytes(1));
+			await _fileStream.WriteAsync(BitConverter.GetBytes(node.CurrentKeysCount));
 			await _fileStream.WriteAsync(BitConverter.GetBytes(node.IsLeaf));
 			foreach (var childBlock in node.Childs)
 			{
@@ -255,17 +253,18 @@ namespace BtreeIndexProject.Services.BTreeFile
 
 		private async Task<BTreeFileNode> ReadNodeFromBlock(int blockNumber)
 		{
-			var blockPosition = blockNumber * _blockSize + HeaderOffset;
+			long blockPosition = blockNumber * _blockSize + HeaderOffset;
 			_fileStream.Seek(blockPosition, SeekOrigin.Begin);
 			byte[] buffer = new byte[_blockSize];
 			await _fileStream.ReadAsync(buffer, 0, _blockSize);
 			int byteIndex = 0; 
 			var minDegree = BitConverter.ToInt32(buffer, byteIndex);
 			byteIndex += sizeof(int);
-			var isLeaf = BitConverter.ToBoolean(buffer, byteIndex);
-			byteIndex += sizeof(bool);
 			var keyCount = BitConverter.ToInt32(buffer, byteIndex);
 			byteIndex += sizeof(int);
+			var isLeaf = BitConverter.ToBoolean(buffer, byteIndex);
+			byteIndex += sizeof(bool);
+			
 			var childs = new int[2 * minDegree];
 			int j = 0;
 			var childsOffset = byteIndex;
@@ -292,7 +291,8 @@ namespace BtreeIndexProject.Services.BTreeFile
 			{
 				BlockNumber = blockNumber,
 				Childs = childs,
-				Keys = keys
+				Keys = keys, 
+				CurrentKeysCount = keyCount
 			};
 			return res;
 		}

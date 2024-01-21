@@ -74,9 +74,37 @@ namespace BtreeIndexProject.Services
 			if (!_tableMetaData.ContainsKey(tableName.ToUpperInvariant()))
 				throw new Exception($"Таблица {tableName} не найдена");
 
-			var column = _tableMetaData[tableName.ToUpperInvariant()].Columns.FirstOrDefault(x => x.Name == columnName);
+			var column = _tableMetaData[tableName.ToUpperInvariant()].Columns.FirstOrDefault(x => x.Name.ToUpperInvariant() == columnName.ToUpperInvariant());
 
 			return column;
+		}
+
+		public List<TableIndex> GetIndexByColumnName(string tableName, string columnName)
+		{
+			tableName = tableName?.ToUpperInvariant();
+			if (!_tableMetaData.ContainsKey(tableName))
+				throw new Exception($"Таблица {tableName} не найдена");
+
+			return _tableMetaData[tableName].Indicies.Where(i => i.ColumnName == columnName?.ToUpperInvariant()).ToList();
+		}
+
+		public string GetTableFileName(string tableName)
+		{
+			if (!_tableMetaData.ContainsKey(tableName.ToUpperInvariant()))
+				throw new Exception($"Таблица {tableName} не найдена");
+			
+			if(!Directory.Exists(_dbFolder)) throw new Exception($"Путь {_dbFolder} не найден");
+
+			return Path.Combine(_dbFolder, tableName + ".csv");
+		}
+
+		public List<TableIndex> GetTableAllTableIndices(string tableName)
+		{
+			tableName = tableName?.ToUpperInvariant();
+			if (!_tableMetaData.ContainsKey(tableName))
+				throw new Exception($"Таблица {tableName} не найдена");
+
+			return _tableMetaData[tableName].Indicies;
 		}
 	}
 	
