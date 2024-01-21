@@ -25,12 +25,12 @@
 				// Allocate memory for root
 				root = new BTreeNode<E>(T, true);
 				root.Keys[0] = k;  // Insert key
-				root.N = 1;  // Update number of keys in root
+				root.CurrentKeysCount = 1;  // Update number of keys in root
 			}
 			else // If tree is not empty
 			{
 				// If root is full, then tree grows in height
-				if (root.N == 2 * T - 1)
+				if (root.CurrentKeysCount == 2 * T - 1)
 				{
 					// Allocate memory for new root
 					var s = new BTreeNode<E>(T, false);

@@ -3,44 +3,46 @@
 	internal class BTreeNode<E>
 		where E : IComparable
 	{
-		private const int MaxChildren = 10;
-		private const int MaxKeys = 10;
-
 		public BTreeNode(int t1, bool isLeaf)
 		{
-			T = t1;
+			MinimumDegree = t1;
 			IsLeaf = isLeaf;
-			// Allocate memory for maximum number of possible keys
-			// and child pointers
-			Keys = new E[2 * T - 1];
-			Childs = new BTreeNode<E>[2 * T];
-
-			// Initialize the number of keys as 0
-			N = 0;
+			Keys = new E[2 * MinimumDegree - 1];
+			Childs = new BTreeNode<E>[2 * MinimumDegree];
 		}
-
-		public int T { get; set; }      // Minimum degree (defines the range for number of keys)
-		public int N { get; set; } // Current number of keys
-		public E[] Keys { get; set; } = new E[MaxKeys];
-		public BTreeNode<E>[] Childs { get; set; } = new BTreeNode<E>[MaxChildren];
+		/// <summary>
+		/// Минимальная степень дерева
+		/// Каждый узел, кроме корня, содержит не менее MinimumDegree−1
+		/// ключей, и каждый внутренний узел имеет по меньшей мере MinimumDegree  дочерних узлов. 
+		/// </summary>
+		public int MinimumDegree { get; set; }
+		/// <summary>
+		/// 
+		/// </summary>
+		public int CurrentKeysCount { get; set; } 
+		public E[] Keys { get; set; }
+		public BTreeNode<E>[] Childs { get; set; }
+		/// <summary>
+		/// Является ли узел листом
+		/// </summary>
 		public bool IsLeaf { get; set; }
-		
+
 		// Function to search key k in subtree rooted with this node
-		public BTreeNode<E> Search(E k)
+		public BTreeNode<E> Search(E searchKey)
 		{
 			// Find the first key greater than or equal to k
 			int i = 0;
-			while (i < N && k.CompareTo(Keys[i]) > 0)
+			while (i < CurrentKeysCount && searchKey.CompareTo(Keys[i]) > 0)
 				i++;
 
 			// If the found key is equal to k, return this node
-			if (Keys[i].Equals(k)) return this;
+			if (Keys[i].Equals(searchKey)) return this;
 
 			// If key is not found here and this is a leaf node
 			if (IsLeaf) return null;
 
 			// Go to the appropriate child
-			return Childs[i].Search(k);
+			return Childs[i].Search(searchKey);
 		}
 
 		// Function to traverse all nodes in a subtree rooted with this node
@@ -50,7 +52,7 @@
 			// and first n children
 			int i;
 			var res = new List<E>();
-			for (i = 0; i < N; i++)
+			for (i = 0; i < CurrentKeysCount; i++)
 			{
 				// If this is not leaf, then before printing key[i],
 				// traverse the subtree rooted with child C[i].
@@ -70,7 +72,7 @@
 		public void InsertNonFull(E k)
 		{
 			// Initialize index as index of rightmost element
-			int i = N - 1;
+			int i = CurrentKeysCount - 1;
 
 			// If this is a leaf node
 			if (IsLeaf)
@@ -86,7 +88,7 @@
 
 				// Insert the new key at found location
 				Keys[i + 1] = k;
-				N = N + 1;
+				CurrentKeysCount += 1;
 			}
 			else // If this node is not leaf
 			{
@@ -95,7 +97,7 @@
 					i--;
 
 				// See if the found child is full
-				if (Childs[i + 1].N == 2 * T - 1)
+				if (Childs[i + 1].CurrentKeysCount == 2 * MinimumDegree - 1)
 				{
 					// If the child is full, then split it
 					SplitChild(i + 1, Childs[i + 1]);
@@ -116,26 +118,26 @@
 		{
 			// Create a new node which is going to store (t-1) keys
 			// of y
-			var z = new BTreeNode<E>(y.T, y.IsLeaf);
-			z.N = T - 1;
+			var z = new BTreeNode<E>(y.MinimumDegree, y.IsLeaf);
+			z.CurrentKeysCount = MinimumDegree - 1;
 
 			// Copy the last (t-1) keys of y to z
-			for (int j = 0; j < T - 1; j++)
-				z.Keys[j] = y.Keys[j + T];
+			for (int j = 0; j < MinimumDegree - 1; j++)
+				z.Keys[j] = y.Keys[j + MinimumDegree];
 
 			// Copy the last t children of y to z
 			if (y.IsLeaf == false)
 			{
-				for (int j = 0; j < T; j++)
-					z.Childs[j] = y.Childs[j + T];
+				for (int j = 0; j < MinimumDegree; j++)
+					z.Childs[j] = y.Childs[j + MinimumDegree];
 			}
 
 			// Reduce the number of keys in y
-			y.N = T - 1;
+			y.CurrentKeysCount = MinimumDegree - 1;
 
 			// Since this node is going to have a new child,
 			// create space of new child
-			for (int j = N; j >= i + 1; j--)
+			for (int j = CurrentKeysCount; j >= i + 1; j--)
 				Childs[j + 1] = Childs[j];
 
 			// Link the new child to this node
@@ -143,14 +145,14 @@
 
 			// A key of y will move to this node. Find the location of
 			// new key and move all greater keys one space ahead
-			for (int j = N - 1; j >= i; j--)
+			for (int j = CurrentKeysCount - 1; j >= i; j--)
 				Keys[j + 1] = Keys[j];
 
 			// Copy the middle key of y to this node
-			Keys[i] = y.Keys[T - 1];
+			Keys[i] = y.Keys[MinimumDegree - 1];
 
 			// Increment count of keys in this node
-			N++;
+			CurrentKeysCount++;
 		}
 	}
 }

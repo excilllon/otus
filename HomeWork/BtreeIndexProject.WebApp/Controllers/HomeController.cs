@@ -29,9 +29,9 @@ namespace BtreeIndexProject.WebApp.Controllers
         }
 
         [HttpPost]
-        public IActionResult ExecuteQuery([FromBody]QueryModelInput modelInput)
+        public async Task<IActionResult> ExecuteQuery([FromBody]QueryModelInput modelInput)
         {
-	        var resultModel = _queryExecutor.Execute(modelInput);
+	        var resultModel = await _queryExecutor.Execute(modelInput);
 	        return PartialView("_ResultsPartialView", resultModel);
         }
     }

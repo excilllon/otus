@@ -5,15 +5,15 @@ namespace BtreeIndexProject.Services.BackgroundServices
 {
 	public  class DbmsInitializer: BackgroundService
 	{
-		private readonly IMetaDataReader _metaDataReader;
+		private readonly IMetaDataManager _metaDataManager;
 
-		public DbmsInitializer(IMetaDataReader metaDataReader)
+		public DbmsInitializer(IMetaDataManager metaDataManager)
 		{
-			_metaDataReader = metaDataReader;
+			_metaDataManager = metaDataManager;
 		}
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 		{
-			await _metaDataReader.ReadMetaData("C:\\Users\\Admin\\source\\repos\\Otus\\HomeWork\\BtreeIndexProject.WebApp\\bin\\Debug\\net6.0\\DataBase\\");
+			await _metaDataManager.ReadMetaData();
 		}
 	}
 }

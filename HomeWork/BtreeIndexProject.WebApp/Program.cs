@@ -1,6 +1,8 @@
 using BtreeIndexProject.Abstractions;
+using BtreeIndexProject.Abstractions.Indexing;
 using BtreeIndexProject.Services;
 using BtreeIndexProject.Services.BackgroundServices;
+using BtreeIndexProject.Services.Indexing;
 using BtreeIndexProject.Services.QueryExecution;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,8 +10,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews().AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
 
-builder.Services.AddSingleton<IMetaDataReader, MetaDataReader>();
+builder.Services.AddSingleton<IMetaDataManager, MetaDataManager>();
 builder.Services.AddTransient<IQueryExecutor, QueryExecutor>();
+builder.Services.AddTransient<IIndexWriter, IndexManager>();
 builder.Services.AddHostedService<DbmsInitializer>();
 
 var app = builder.Build();

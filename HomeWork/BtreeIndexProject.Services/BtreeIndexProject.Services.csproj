@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Indexing\" />
+    <Folder Include="Tables\" />
     <Folder Include="QueryParsers\" />
   </ItemGroup>
 
