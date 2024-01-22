@@ -6,19 +6,12 @@ namespace BtreeIndexProject.Services.BTreeFile
 	/// </summary>
 	internal class BTreeFileNode
 	{
-		public BTreeFileNode(int t1, bool isLeaf)
+		public BTreeFileNode(int minDegree, bool isLeaf)
 		{
-			MinimumDegree = t1;
 			IsLeaf = isLeaf;
-			Keys = new (int key, long offset)[2 * MinimumDegree - 1];
-			Childs = new int[2 * MinimumDegree];
+			Keys = new (int key, long offset)[2 * minDegree - 1];
+			Childs = new int[2 * minDegree];
 		}
-		/// <summary>
-		/// Минимальная степень дерева
-		/// Каждый узел, кроме корня, содержит не менее MinimumDegree−1
-		/// ключей, и каждый внутренний узел имеет по меньшей мере MinimumDegree  дочерних узлов. 
-		/// </summary>
-		public int MinimumDegree { get; set; }
 		/// <summary>
 		/// Текущее количество ключей в узле
 		/// </summary>
@@ -35,7 +28,9 @@ namespace BtreeIndexProject.Services.BTreeFile
 		/// Является ли узел листом
 		/// </summary>
 		public bool IsLeaf { get; set; }
-
+		/// <summary>
+		/// Номер блока в файле, где хранится узел
+		/// </summary>
 		public int BlockNumber { get; set; } = -1;
 	}
 }

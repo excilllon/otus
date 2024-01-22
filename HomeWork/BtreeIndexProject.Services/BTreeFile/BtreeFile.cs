@@ -13,15 +13,16 @@
 		/// Файл для хранения дереве
 		/// </summary>
 		private readonly string _fileName;
-		/// <summary>
-		/// Минимальная степень дерева
-		/// </summary>
-		private readonly int _minDegree;
+		
 		private FileStream _fileStream;
 		/// <summary>
 		/// Размер блока для хранения одного узла
 		/// </summary>
-		private readonly int _blockSize = 2048;
+		private readonly int _blockSize = 4096;
+		/// <summary>
+		/// Минимальная степень дерева
+		/// </summary>
+		private readonly int _minDegree = 128;
 		/// <summary>
 		/// В первых 4 байтах файла хранится номер блока с корневым узлом
 		/// </summary>
@@ -31,10 +32,9 @@
 		/// </summary>
 		private int _currentBlockNumber;
 
-		public BtreeFile(string fileName, int minDegree)
+		public BtreeFile(string fileName)
 		{
 			_fileName = fileName;
-			_minDegree = minDegree;
 		}
 
 		/// <summary>
@@ -127,19 +127,18 @@
 					};
 
 					// Разделяем старый корень и переносим 1 ключ в новый корень
-					await SplitChild(0, s, root);
+					await SplitChildOfParent(0, s, root);
 
-					// New root has two children now.  Decide which of the
-					// two children is going to have new key
+					// Добавляем новый ключ в одному из двух дочерних узлов
 					int i = 0;
 					if (s.Keys[0].key.CompareTo(key) < 0)
 						i++;
-					await InsertNonFull(key, offset, await ReadNodeFromBlock(s.Childs[i]));
+					await InsertIntoFreeNode(key, offset, await ReadNodeFromBlock(s.Childs[i]));
 
 					root = s;
 					await UpdateRootBlockNumber(s.BlockNumber);
 				}
-				else await InsertNonFull(key, offset, root);
+				else await InsertIntoFreeNode(key, offset, root);
 			}
 		}
 
@@ -150,53 +149,41 @@
 		/// <param name="offset"></param>
 		/// <param name="node"></param>
 		/// <returns></returns>
-		public async Task InsertNonFull(int insertKey, long offset, BTreeFileNode node)
+		public async Task InsertIntoFreeNode(int insertKey, long offset, BTreeFileNode node)
 		{
-			// Initialize index as index of rightmost element
+			// Берем последний занятый индекс в массиве
 			int i = node.CurrentKeysCount - 1;
 
 			if (node.IsLeaf)
 			{
 				// Ищем куда вставить новый ключ и сдвигаем все ключи с большим значением вперед
-				try
+				while (i >= 0 && node.Keys[i].key.CompareTo(insertKey) > 0)
 				{
-					while (i >= 0 && node.Keys[i].key.CompareTo(insertKey) > 0)
-					{
-						node.Keys[i + 1] = node.Keys[i];
-						i--;
-					}
+					node.Keys[i + 1] = node.Keys[i];
+					i--;
 				}
-				catch (Exception e)
-				{
-					Console.WriteLine(e);
-					throw;
-				}
-
 				node.Keys[i + 1].key = insertKey;
 				node.Keys[i + 1].offset = offset;
 				node.CurrentKeysCount += 1;
 				await WriteNode(node);
 			}
-			else 
+			else
 			{
 				// Ищем дочерний узел (номер его блока) куда нужно добавить ключ
 				while (i >= 0 && node.Keys[i].key.CompareTo(insertKey) > 0)
 					i--;
 
 				var nodeToInsertKey = await ReadNodeFromBlock(node.Childs[i + 1]);
-				var isChildIsFull = nodeToInsertKey.CurrentKeysCount == 2 * node.MinimumDegree - 1;
+				var isChildIsFull = nodeToInsertKey.CurrentKeysCount == 2 * _minDegree - 1;
 				if (isChildIsFull)
 				{
 					// Если потомок заполнен, разделим его на два узла и привяжем полученный узел к родителю
-					await SplitChild(i + 1, node, nodeToInsertKey);
-
-					// After split, the middle key of C[i] goes up and
-					// C[i] is splitted into two.  See which of the two
-					// is going to have the new key
+					await SplitChildOfParent(i + 1, node, nodeToInsertKey);
+					
 					if (node.Keys[i + 1].key.CompareTo(insertKey) < 0)
 						i++;
 				}
-				await InsertNonFull(insertKey, offset, nodeToInsertKey);
+				await InsertIntoFreeNode(insertKey, offset, await ReadNodeFromBlock(node.Childs[i + 1]));
 			}
 		}
 
@@ -207,29 +194,28 @@
 		/// <param name="parentNode">Родительский узел</param>
 		/// <param name="childNodeToSplit">Дочерний узел родительского parentNode для разделения</param>
 		/// <returns></returns>
-		public async Task SplitChild(int i, BTreeFileNode parentNode, BTreeFileNode childNodeToSplit)
+		public async Task SplitChildOfParent(int i, BTreeFileNode parentNode, BTreeFileNode childNodeToSplit)
 		{
-			// Create a new node which is going to store (t-1) keys
-			// of y
-			var newSplitFromChild = new BTreeFileNode(childNodeToSplit.MinimumDegree, childNodeToSplit.IsLeaf)
+			// Создаем новый узел, куда скопируем часть ключей childNodeToSplit
+			var newSplitFromChild = new BTreeFileNode(_minDegree, childNodeToSplit.IsLeaf)
 			{
-				CurrentKeysCount = parentNode.MinimumDegree - 1
+				CurrentKeysCount = _minDegree - 1
 			};
 
-			// Copy the last (t-1) keys of y to z
-			for (int j = 0; j < parentNode.MinimumDegree - 1; j++)
-				newSplitFromChild.Keys[j] = childNodeToSplit.Keys[j + parentNode.MinimumDegree];
+			// Копируем последние (t-1) ключей childNodeToSplit в новый узел newSplitFromChild
+			for (int j = 0; j < _minDegree - 1; j++)
+				newSplitFromChild.Keys[j] = childNodeToSplit.Keys[j + _minDegree];
 
-			// Copy the last t children of y to z
+			// Копируем последние t потомков из childNodeToSplit в newSplitFromChild
 			if (childNodeToSplit.IsLeaf == false)
 			{
-				for (int j = 0; j < parentNode.MinimumDegree; j++)
-					newSplitFromChild.Childs[j] = childNodeToSplit.Childs[j + parentNode.MinimumDegree];
+				for (int j = 0; j < _minDegree; j++)
+					newSplitFromChild.Childs[j] = childNodeToSplit.Childs[j + _minDegree];
 			}
 
 			await WriteNode(newSplitFromChild);
 
-			childNodeToSplit.CurrentKeysCount = parentNode.MinimumDegree - 1;
+			childNodeToSplit.CurrentKeysCount = _minDegree - 1;
 			await WriteNode(childNodeToSplit);
 
 			// Сдвигаем место для нового дочернего узла (newSplitFromChild)
@@ -243,7 +229,7 @@
 				parentNode.Keys[j + 1] = parentNode.Keys[j];
 
 			// Копируем ключ из середины childNodeToSplit
-			parentNode.Keys[i] = childNodeToSplit.Keys[parentNode.MinimumDegree - 1];
+			parentNode.Keys[i] = childNodeToSplit.Keys[_minDegree - 1];
 			parentNode.CurrentKeysCount++;
 
 			await WriteNode(parentNode);
@@ -266,8 +252,6 @@
 				_fileStream.Seek(blockPosition, SeekOrigin.Begin);
 			}
 			var blockStartOffset = _fileStream.Position;
-			// Минимальная степень
-			await _fileStream.WriteAsync(BitConverter.GetBytes(_minDegree));
 			// CurrentKeysCount
 			await _fileStream.WriteAsync(BitConverter.GetBytes(node.CurrentKeysCount));
 			// Признак листа
@@ -309,29 +293,27 @@
 			_fileStream.Seek(blockPosition, SeekOrigin.Begin);
 			byte[] buffer = new byte[_blockSize];
 			await _fileStream.ReadAsync(buffer, 0, _blockSize);
-			int byteIndex = 0; 
-			var minDegree = BitConverter.ToInt32(buffer, byteIndex);
-			byteIndex += sizeof(int);
+			int byteIndex = 0;
 			var keyCount = BitConverter.ToInt32(buffer, byteIndex);
 			byteIndex += sizeof(int);
 			var isLeaf = BitConverter.ToBoolean(buffer, byteIndex);
 			byteIndex += sizeof(bool);
-			
-			var childs = new int[2 * minDegree];
+
+			var childs = new int[2 * _minDegree];
 			int j = 0;
 			var childsOffset = byteIndex;
-			var childsBlockSize = (2 * minDegree) * sizeof(int);
+			var childsBlockSize = (2 * _minDegree) * sizeof(int);
 			// читаем номера дочерних блоков
-			for (;byteIndex < childsBlockSize + childsOffset; byteIndex += sizeof(int))
+			for (; byteIndex < childsBlockSize + childsOffset; byteIndex += sizeof(int))
 			{
 				childs[j++] = BitConverter.ToInt32(buffer, byteIndex);
 			}
 			// Читам ключ-смещение
-			var keys = new (int key, long offset)[2 * minDegree - 1];
+			var keys = new (int key, long offset)[2 * _minDegree - 1];
 			j = 0;
 			var keysOffset = byteIndex;
-			var keysBlockSize = (2 * minDegree - 1)*(sizeof(int)+sizeof(long));
-			for (;byteIndex < keysOffset + keysBlockSize;)
+			var keysBlockSize = (2 * _minDegree - 1) * (sizeof(int) + sizeof(long));
+			for (; byteIndex < keysOffset + keysBlockSize;)
 			{
 				keys[j].key = BitConverter.ToInt32(buffer, byteIndex);
 				byteIndex += sizeof(int);
@@ -339,11 +321,11 @@
 				byteIndex += sizeof(long);
 			}
 
-			var res = new BTreeFileNode(minDegree, isLeaf)
+			var res = new BTreeFileNode(_minDegree, isLeaf)
 			{
 				BlockNumber = blockNumber,
 				Childs = childs,
-				Keys = keys, 
+				Keys = keys,
 				CurrentKeysCount = keyCount
 			};
 			return res;

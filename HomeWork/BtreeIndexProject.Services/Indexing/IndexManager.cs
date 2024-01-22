@@ -48,7 +48,7 @@ namespace BtreeIndexProject.Services.Indexing
 		private async Task CreateIntegerIndex(FileStream streamReader, int columnIndex, string indexName)
 		{
 			var indexFileName = Path.Combine(_dbPath, indexName);
-			using var btree = new BtreeFile(indexFileName, 10);
+			using var btree = new BtreeFile(indexFileName);
 			await btree.InitTree();
 			var byteBuffer = new byte[RowSize];
 			long streamOffset = 0;
@@ -77,7 +77,7 @@ namespace BtreeIndexProject.Services.Indexing
 			var indexFileName = Path.Combine(_dbPath, indexName);
 			if (!File.Exists(indexFileName)) throw new Exception($"Файл индекса {indexName} не найден");
 
-			var btree = new BtreeFile(indexFileName, 10);
+			var btree = new BtreeFile(indexFileName);
 			await btree.InitTree();
 			return btree;
 		}
