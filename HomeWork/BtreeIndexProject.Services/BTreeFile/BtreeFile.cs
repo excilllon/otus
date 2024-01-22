@@ -1,14 +1,34 @@
 ﻿namespace BtreeIndexProject.Services.BTreeFile
 {
+	/// <summary>
+	/// Реализация B-Tree дерева для хранения индекса в виде файла
+	/// </summary>
 	internal class BtreeFile : IDisposable
 	{
+		/// <summary>
+		/// корневой узел
+		/// </summary>
 		private BTreeFileNode? root;
-		private int _rootBlock;
+		/// <summary>
+		/// Файл для хранения дереве
+		/// </summary>
 		private readonly string _fileName;
+		/// <summary>
+		/// Минимальная степень дерева
+		/// </summary>
 		private readonly int _minDegree;
 		private FileStream _fileStream;
+		/// <summary>
+		/// Размер блока для хранения одного узла
+		/// </summary>
 		private readonly int _blockSize = 2048;
+		/// <summary>
+		/// В первых 4 байтах файла хранится номер блока с корневым узлом
+		/// </summary>
 		private const int HeaderOffset = 4;
+		/// <summary>
+		/// 
+		/// </summary>
 		private int _currentBlockNumber;
 
 		public BtreeFile(string fileName, int minDegree)
@@ -17,6 +37,11 @@
 			_minDegree = minDegree;
 		}
 
+		/// <summary>
+		/// Инициализирует дерево. Открывает файл если он есть и читает номер блока с корнем и десериализует сам корень
+		/// Если файл не создн, то создает его
+		/// </summary>
+		/// <returns></returns>
 		public async Task InitTree()
 		{
 			_fileStream = new FileStream(_fileName, FileMode.OpenOrCreate);
@@ -27,8 +52,8 @@
 			// Файл индекса не пустой, читаем корневой узел
 			if (bytesRead == 4)
 			{
-				_rootBlock = BitConverter.ToInt32(buffer, 0);
-				root = await ReadNodeFromBlock(_rootBlock);
+				var rootBlock = BitConverter.ToInt32(buffer, 0);
+				root = await ReadNodeFromBlock(rootBlock);
 				_currentBlockNumber = (int)(_fileStream.Length / _blockSize);
 			}
 		}
@@ -41,20 +66,25 @@
 		/// <returns></returns>
 		private async Task<long?> Search(int searchKey, BTreeFileNode node)
 		{
-			// Find the first key greater than or equal to k
+			// Ищем перый ключ, который не меньше searchKey
 			int i = 0;
 			while (i < node.CurrentKeysCount && searchKey.CompareTo(node.Keys[i].key) > 0)
 				i++;
 
 			if (node.Keys[i].key.Equals(searchKey)) return node.Keys[i].offset;
 
-			// Если достигли листов и не нашли ключ, значит его нет
+			// Если достигли листов и не нашли ключ, значит такого ключе нет в дереве
 			if (node.IsLeaf) return null;
 
 			// Ищем в дочерних узлах
 			return await Search(searchKey, await ReadNodeFromBlock(node.Childs[i]));
 		}
 
+		/// <summary>
+		/// Поиск смещения строки по ключу
+		/// </summary>
+		/// <param name="k">Значение ключа</param>
+		/// <returns>Смещение строки, где этот ключ есть</returns>
 		public async Task<long?> Search(int k)
 		{
 			return await Search(k, root);
@@ -84,19 +114,19 @@
 			}
 			else
 			{
-				// If root is full, then tree grows in height
+				// Если корень заполен, создаем новый
 				if (root.CurrentKeysCount == 2 * _minDegree - 1)
 				{
 					var s = new BTreeFileNode(_minDegree, false)
 					{
 						Childs =
 						{
-							// Make old root as child of new root
+							// Старый корень становится дочерним узлом нового
 							[0] = root.BlockNumber
 						}
 					};
 
-					// Split the old root and move 1 key to the new root
+					// Разделяем старый корень и переносим 1 ключ в новый корень
 					await SplitChild(0, s, root);
 
 					// New root has two children now.  Decide which of the
@@ -106,7 +136,6 @@
 						i++;
 					await InsertNonFull(key, offset, await ReadNodeFromBlock(s.Childs[i]));
 
-					// Change root
 					root = s;
 					await UpdateRootBlockNumber(s.BlockNumber);
 				}
@@ -114,43 +143,51 @@
 			}
 		}
 
-		// A utility function to insert a new key in this node
-		// The assumption is, the node must be non-full when this
-		// function is called
+		/// <summary>
+		/// ДОбавление ключа в еще незаполненную ноду
+		/// </summary>
+		/// <param name="insertKey"></param>
+		/// <param name="offset"></param>
+		/// <param name="node"></param>
+		/// <returns></returns>
 		public async Task InsertNonFull(int insertKey, long offset, BTreeFileNode node)
 		{
 			// Initialize index as index of rightmost element
 			int i = node.CurrentKeysCount - 1;
 
-			// If this is a leaf node
 			if (node.IsLeaf)
 			{
-				// The following loop does two things
-				// a) Finds the location of new key to be inserted
-				// b) Moves all greater keys to one place ahead
-				while (i >= 0 && node.Keys[i].key.CompareTo(insertKey) > 0)
+				// Ищем куда вставить новый ключ и сдвигаем все ключи с большим значением вперед
+				try
 				{
-					node.Keys[i + 1] = node.Keys[i];
-					i--;
+					while (i >= 0 && node.Keys[i].key.CompareTo(insertKey) > 0)
+					{
+						node.Keys[i + 1] = node.Keys[i];
+						i--;
+					}
+				}
+				catch (Exception e)
+				{
+					Console.WriteLine(e);
+					throw;
 				}
 
-				// Insert the new key at found location
 				node.Keys[i + 1].key = insertKey;
 				node.Keys[i + 1].offset = offset;
 				node.CurrentKeysCount += 1;
 				await WriteNode(node);
 			}
-			else // If this node is not leaf
+			else 
 			{
-				// Find the child which is going to have the new key
+				// Ищем дочерний узел (номер его блока) куда нужно добавить ключ
 				while (i >= 0 && node.Keys[i].key.CompareTo(insertKey) > 0)
 					i--;
 
-				// See if the found child is full
 				var nodeToInsertKey = await ReadNodeFromBlock(node.Childs[i + 1]);
-				if (nodeToInsertKey.CurrentKeysCount == 2 * node.MinimumDegree - 1)
+				var isChildIsFull = nodeToInsertKey.CurrentKeysCount == 2 * node.MinimumDegree - 1;
+				if (isChildIsFull)
 				{
-					// If the child is full, then split it
+					// Если потомок заполнен, разделим его на два узла и привяжем полученный узел к родителю
 					await SplitChild(i + 1, node, nodeToInsertKey);
 
 					// After split, the middle key of C[i] goes up and
@@ -163,55 +200,59 @@
 			}
 		}
 
-		// A utility function to split the child y of this node
-		// Note that y must be full when this function is called
-		public async Task SplitChild(int i, BTreeFileNode nodeToSplit, BTreeFileNode y)
+		/// <summary>
+		/// Разделение дочернего узла указанного родителя
+		/// </summary>
+		/// <param name="i"></param>
+		/// <param name="parentNode">Родительский узел</param>
+		/// <param name="childNodeToSplit">Дочерний узел родительского parentNode для разделения</param>
+		/// <returns></returns>
+		public async Task SplitChild(int i, BTreeFileNode parentNode, BTreeFileNode childNodeToSplit)
 		{
 			// Create a new node which is going to store (t-1) keys
 			// of y
-			var z = new BTreeFileNode(y.MinimumDegree, y.IsLeaf)
+			var newSplitFromChild = new BTreeFileNode(childNodeToSplit.MinimumDegree, childNodeToSplit.IsLeaf)
 			{
-				CurrentKeysCount = nodeToSplit.MinimumDegree - 1
+				CurrentKeysCount = parentNode.MinimumDegree - 1
 			};
 
 			// Copy the last (t-1) keys of y to z
-			for (int j = 0; j < nodeToSplit.MinimumDegree - 1; j++)
-				z.Keys[j] = y.Keys[j + nodeToSplit.MinimumDegree];
+			for (int j = 0; j < parentNode.MinimumDegree - 1; j++)
+				newSplitFromChild.Keys[j] = childNodeToSplit.Keys[j + parentNode.MinimumDegree];
 
 			// Copy the last t children of y to z
-			if (y.IsLeaf == false)
+			if (childNodeToSplit.IsLeaf == false)
 			{
-				for (int j = 0; j < nodeToSplit.MinimumDegree; j++)
-					z.Childs[j] = y.Childs[j + nodeToSplit.MinimumDegree];
+				for (int j = 0; j < parentNode.MinimumDegree; j++)
+					newSplitFromChild.Childs[j] = childNodeToSplit.Childs[j + parentNode.MinimumDegree];
 			}
 
-			await WriteNode(z);
+			await WriteNode(newSplitFromChild);
 
-			// Reduce the number of keys in y
-			y.CurrentKeysCount = nodeToSplit.MinimumDegree - 1;
+			childNodeToSplit.CurrentKeysCount = parentNode.MinimumDegree - 1;
+			await WriteNode(childNodeToSplit);
 
-			// Since this node is going to have a new child,
-			// create space of new child
-			for (int j = nodeToSplit.CurrentKeysCount; j >= i + 1; j--)
-				nodeToSplit.Childs[j + 1] = nodeToSplit.Childs[j];
+			// Сдвигаем место для нового дочернего узла (newSplitFromChild)
+			for (int j = parentNode.CurrentKeysCount; j >= i + 1; j--)
+				parentNode.Childs[j + 1] = parentNode.Childs[j];
 
-			// Link the new child to this node
-			nodeToSplit.Childs[i + 1] = z.BlockNumber;
+			parentNode.Childs[i + 1] = newSplitFromChild.BlockNumber;
 
-			// A key of y will move to this node. Find the location of
-			// new key and move all greater keys one space ahead
-			for (int j = nodeToSplit.CurrentKeysCount - 1; j >= i; j--)
-				nodeToSplit.Keys[j + 1] = nodeToSplit.Keys[j];
+			// Новый ключ будет вставлен в parentNode, ищем для него место и сдвигаем большие ключи
+			for (int j = parentNode.CurrentKeysCount - 1; j >= i; j--)
+				parentNode.Keys[j + 1] = parentNode.Keys[j];
 
-			// Copy the middle key of y to this node
-			nodeToSplit.Keys[i] = y.Keys[nodeToSplit.MinimumDegree - 1];
+			// Копируем ключ из середины childNodeToSplit
+			parentNode.Keys[i] = childNodeToSplit.Keys[parentNode.MinimumDegree - 1];
+			parentNode.CurrentKeysCount++;
 
-			// Increment count of keys in this node
-			nodeToSplit.CurrentKeysCount++;
-
-			await WriteNode(nodeToSplit);
+			await WriteNode(parentNode);
 		}
-
+		/// <summary>
+		/// Запись узла в блок файла
+		/// </summary>
+		/// <param name="node"></param>
+		/// <returns></returns>
 		private async Task WriteNode(BTreeFileNode node)
 		{
 			if (node.BlockNumber == -1)
@@ -229,6 +270,7 @@
 			await _fileStream.WriteAsync(BitConverter.GetBytes(_minDegree));
 			// CurrentKeysCount
 			await _fileStream.WriteAsync(BitConverter.GetBytes(node.CurrentKeysCount));
+			// Признак листа
 			await _fileStream.WriteAsync(BitConverter.GetBytes(node.IsLeaf));
 			foreach (var childBlock in node.Childs)
 			{
@@ -245,12 +287,22 @@
 			await _fileStream.WriteAsync(emptyBytes);
 		}
 
+		/// <summary>
+		/// Обновление номера блока с корнем
+		/// </summary>
+		/// <param name="rootBlockNumber"></param>
+		/// <returns></returns>
 		private async Task UpdateRootBlockNumber(int rootBlockNumber)
 		{
 			_fileStream.Seek(0, SeekOrigin.Begin);
 			await _fileStream.WriteAsync(BitConverter.GetBytes(rootBlockNumber));
 		}
 
+		/// <summary>
+		/// Чтение узла из указанного блока
+		/// </summary>
+		/// <param name="blockNumber">Номер блока</param>
+		/// <returns></returns>
 		private async Task<BTreeFileNode> ReadNodeFromBlock(int blockNumber)
 		{
 			long blockPosition = blockNumber * _blockSize + HeaderOffset;

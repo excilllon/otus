@@ -1,10 +1,11 @@
-﻿using BtreeIndexProject.Abstractions;
-using BtreeIndexProject.Model;
+﻿using BtreeIndexProject.Abstractions.QueryExecution;
+using BtreeIndexProject.Model.QueryExecution;
+using BtreeIndexProject.Model.ViewModels;
 using BtreeIndexProject.Services.Results;
 
 namespace BtreeIndexProject.Services.QueryExecution
 {
-	internal class InvalidStatementExecutor: IQueryExecutor
+    internal class InvalidStatementExecutor: IQueryExecutor
 	{
 		private readonly string[] _query;
 

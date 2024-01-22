@@ -1,13 +1,13 @@
 ﻿using System.Text;
-using BtreeIndexProject.Abstractions;
 using BtreeIndexProject.Abstractions.Indexing;
+using BtreeIndexProject.Abstractions.MetaData;
 using BtreeIndexProject.Model.MetaData;
 using BtreeIndexProject.Services.BTreeFile;
 using Microsoft.Extensions.Configuration;
 
 namespace BtreeIndexProject.Services.Indexing
 {
-	public class IndexManager : IIndexWriter, IIndexReader
+    public class IndexManager : IIndexWriter, IIndexReader
 	{
 		private const int RowSize = 513;
 		private readonly IMetaDataManager _metaDataManager;
@@ -63,25 +63,29 @@ namespace BtreeIndexProject.Services.Indexing
 			}
 		}
 
-		/// <summary>
-		/// Поиск смещения строки по ключу
-		/// </summary>
-		/// <param name="indexName"></param>
-		/// <param name="value"></param>
-		/// <returns></returns>
-		/// <exception cref="Exception"></exception>
+		
 		public async Task<long?> ReadIndex(string indexName, int value)
+		{
+			using var btree = await OpenIndex(indexName);
+			var rowOffset = await btree.Search(value);
+			return rowOffset;
+		}
+
+		private async Task<BtreeFile> OpenIndex(string indexName)
 		{
 			if (!Directory.Exists(_dbPath)) throw new Exception($"Путь {_dbPath} не найден");
 			var indexFileName = Path.Combine(_dbPath, indexName);
 			if (!File.Exists(indexFileName)) throw new Exception($"Файл индекса {indexName} не найден");
 
-			using var btree = new BtreeFile(indexFileName, 10);
+			var btree = new BtreeFile(indexFileName, 10);
 			await btree.InitTree();
-
-			var rowOffset = await btree.Search(value);
-			return rowOffset;
+			return btree;
 		}
 
+		public async Task UpdateIndex(string indexName, int value, long offset)
+		{
+			using var btree = await OpenIndex(indexName);
+			await btree.Insert(value, offset);
+		}
 	}
 }

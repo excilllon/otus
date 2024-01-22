@@ -1,4 +1,4 @@
-﻿@model BtreeIndexProject.Abstractions.QueryResult
+﻿@model BtreeIndexProject.Model.QueryExecution.QueryResult
 
 
 @(Html.DevExtreme().TabPanel()
@@ -18,7 +18,9 @@
 			cfg.Add().Title("Результаты").Template(@<text>
 				                                       @(Html.DevExtreme()
 					                                       .DataGrid()
-															.Height("493px")
+					                                       .AllowColumnResizing(true)
+					                                       .NoDataText("Ничего не найдено")
+					                                       .Height("493px")
 					                                       .Scrolling(cfg => cfg.ShowScrollbar(ShowScrollbarMode.Always))
 					                                       .ID("gridContainer")
 					                                       .Columns(columns =>

@@ -1,13 +1,14 @@
 ﻿using System.Diagnostics;
-using BtreeIndexProject.Abstractions;
-using BtreeIndexProject.Model;
+using BtreeIndexProject.Abstractions.MetaData;
+using BtreeIndexProject.Abstractions.QueryExecution;
+using BtreeIndexProject.Model.ViewModels;
 using BtreeIndexProject.WebApp.Models;
 using DevExtreme.AspNet.Mvc;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BtreeIndexProject.WebApp.Controllers
 {
-	public class HomeController : Controller
+    public class HomeController : Controller
 	{
 		private readonly ILogger<HomeController> _logger;
 		private readonly IQueryExecutor _queryExecutor;
@@ -38,6 +39,11 @@ namespace BtreeIndexProject.WebApp.Controllers
 			return PartialView("_ResultsPartialView", resultModel);
 		}
 
+		/// <summary>
+		/// Модель для дерева слева
+		/// </summary>
+		/// <param name="loadOptions"></param>
+		/// <returns></returns>
 		[HttpGet]
 		public object GetHierarchicalData(DataSourceLoadOptions loadOptions)
 		{

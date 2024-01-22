@@ -1,0 +1,119 @@
+{
+    "Name": "CARS",
+    "Columns": [
+        {
+            "Name": "VIN",
+            "Type": 0,
+            "IsPrimaryKey": false,
+            "Order": 0
+        },
+        {
+            "Name": "County",
+            "Type": 0,
+            "IsPrimaryKey": false,
+            "Order": 1
+        },
+        {
+            "Name": "City",
+            "Type": 0,
+            "IsPrimaryKey": false,
+            "Order": 2
+        },
+        {
+            "Name": "State",
+            "Type": 0,
+            "IsPrimaryKey": false,
+            "Order": 3
+        },
+        {
+            "Name": "PostalCode",
+            "Type": 0,
+            "IsPrimaryKey": false,
+            "Order": 4
+        },
+        {
+            "Name": "ModelYear",
+            "Type": 0,
+            "IsPrimaryKey": false,
+            "Order": 5
+        },
+        {
+            "Name": "Make",
+            "Type": 0,
+            "IsPrimaryKey": false,
+            "Order": 6
+        },
+        {
+            "Name": "Model",
+            "Type": 0,
+            "IsPrimaryKey": false,
+            "Order": 7
+        },
+        {
+            "Name": "ElectricVehicleType",
+            "Type": 0,
+            "IsPrimaryKey": false,
+            "Order": 8
+        },
+        {
+            "Name": "CleanAlternativeFuelVehicle(CAFV)Eligibility",
+            "Type": 0,
+            "IsPrimaryKey": false,
+            "Order": 9
+        },
+        {
+            "Name": "ElectricRange",
+            "Type": 0,
+            "IsPrimaryKey": false,
+            "Order": 10
+        },
+        {
+            "Name": "BaseMSRP",
+            "Type": 0,
+            "IsPrimaryKey": false,
+            "Order": 11
+        },
+        {
+            "Name": "LegislativeDistrict",
+            "Type": 0,
+            "IsPrimaryKey": false,
+            "Order": 12
+        },
+        {
+            "Name": "DOLVehicleID",
+            "Type": 1,
+            "IsPrimaryKey": false,
+            "Order": 13
+        },
+        {
+            "Name": "VehicleLocation",
+            "Type": 0,
+            "IsPrimaryKey": false,
+            "Order": 14
+        },
+        {
+            "Name": "ElectricUtility",
+            "Type": 0,
+            "IsPrimaryKey": false,
+            "Order": 15
+        },
+        {
+            "Name": "2020CensusTract",
+            "Type": 0,
+            "IsPrimaryKey": false,
+            "Order": 16
+        },
+        {
+            "Name": "ID",
+            "Type": 1,
+            "IsPrimaryKey": true,
+            "Order": 17
+        }
+    ],
+  "Indicies": [
+    {
+      "Name": "PK_INDEX",
+      "ColumnName": "ID"
+    }
+  ]
+}

@@ -1,9 +1,9 @@
-﻿using BtreeIndexProject.Abstractions;
+﻿using BtreeIndexProject.Abstractions.MetaData;
 using Microsoft.Extensions.Hosting;
 
 namespace BtreeIndexProject.Services.BackgroundServices
 {
-	public  class DbmsInitializer: BackgroundService
+    public  class DbmsInitializer: BackgroundService
 	{
 		private readonly IMetaDataManager _metaDataManager;
 

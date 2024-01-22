@@ -1,11 +1,13 @@
 ﻿using System.Diagnostics;
-using BtreeIndexProject.Abstractions;
 using BtreeIndexProject.Abstractions.Indexing;
-using BtreeIndexProject.Model;
+using BtreeIndexProject.Abstractions.MetaData;
+using BtreeIndexProject.Abstractions.QueryExecution;
+using BtreeIndexProject.Model.QueryExecution;
+using BtreeIndexProject.Model.ViewModels;
 
 namespace BtreeIndexProject.Services.QueryExecution
 {
-	public class QueryExecutor: IQueryExecutor
+    public class QueryExecutor : IQueryExecutor
 	{
 		private readonly IMetaDataManager _metaDataManager;
 		private readonly IIndexWriter _indexWriter;
@@ -21,7 +23,7 @@ namespace BtreeIndexProject.Services.QueryExecution
 		{
 			if (string.IsNullOrEmpty(model.Query)) return new QueryResult();
 			var queryStatement = model.Query.ToUpperInvariant().Split(' ').Select(q => q.Trim()).ToArray();
-			if(queryStatement.Length == 0) return new QueryResult();
+			if (queryStatement.Length == 0) return new QueryResult();
 			Stopwatch stopwatch = Stopwatch.StartNew();
 			var result = await GetConcreteExecutor(queryStatement).Execute(model);
 			stopwatch.Stop();
@@ -35,7 +37,7 @@ namespace BtreeIndexProject.Services.QueryExecution
 			return statement switch
 			{
 				"SELECT" => new SelectExecutor(_metaDataManager, _indexReader),
-				"INSERT" => new InsertQueryExecutor(queryParts),
+				"INSERT" => new InsertQueryExecutor(_metaDataManager, _indexWriter, _indexReader),
 				"CREATE" => new CreateIndexExecutor(_indexWriter),
 				_ => new InvalidStatementExecutor(queryParts)
 			};

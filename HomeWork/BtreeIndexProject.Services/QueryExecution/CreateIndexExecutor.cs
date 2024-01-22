@@ -1,12 +1,13 @@
-﻿using BtreeIndexProject.Abstractions;
-using BtreeIndexProject.Model;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using BtreeIndexProject.Services.Results;
 using BtreeIndexProject.Abstractions.Indexing;
+using BtreeIndexProject.Abstractions.QueryExecution;
+using BtreeIndexProject.Model.QueryExecution;
+using BtreeIndexProject.Model.ViewModels;
 
 namespace BtreeIndexProject.Services.QueryExecution
 {
-	internal class CreateIndexExecutor : IQueryExecutor
+    internal class CreateIndexExecutor : IQueryExecutor
 	{
 		private readonly IIndexWriter _indexWriter;
 

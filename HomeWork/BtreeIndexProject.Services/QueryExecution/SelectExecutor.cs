@@ -1,13 +1,15 @@
 ﻿using System.Text;
 using System.Text.RegularExpressions;
-using BtreeIndexProject.Abstractions;
 using BtreeIndexProject.Abstractions.Indexing;
-using BtreeIndexProject.Model;
+using BtreeIndexProject.Abstractions.MetaData;
+using BtreeIndexProject.Abstractions.QueryExecution;
+using BtreeIndexProject.Model.QueryExecution;
+using BtreeIndexProject.Model.ViewModels;
 using BtreeIndexProject.Services.Results;
 
 namespace BtreeIndexProject.Services.QueryExecution
 {
-	internal class SelectExecutor : IQueryExecutor
+    internal class SelectExecutor : IQueryExecutor
 	{
 		private const int RowSize = 513;
 		private readonly IMetaDataManager _metaDataManager;
@@ -33,10 +35,11 @@ namespace BtreeIndexProject.Services.QueryExecution
 			var whereKeyWord = selectMatch.Groups[5];
 			var whereExpression = selectMatch.Groups[6];
 
-			var whereMatch = Regex.Match(whereExpression.Value, "(\\S*)\\s*=\\s*(\\d*)");
+			var whereMatch = Regex.Match(whereExpression.Value, "(\\S*)\\s*=\\s*(\\S*)");
 
 			try
 			{
+				var tableColumns = _metaDataManager.GetTableColumns(_tableName).OrderBy(c=>c.Order);
 				List<string[]> rows = new List<string[]>();
 				if (whereMatch.Success && whereMatch.Groups.Count >= 3)
 				{
@@ -49,6 +52,10 @@ namespace BtreeIndexProject.Services.QueryExecution
 						if (offset == null) return new QueryResult();
 						rows = await GetRowsByOffsetStrategy(new[] { offset.Value });
 					}
+					else if (!tableColumns.Any(c => c.Name.ToUpperInvariant() == columnName.ToUpperInvariant()))
+					{
+						return new InvalidSyntaxResult($"Колонка {columnName} не найдена в таблице {_tableName}");
+					}
 					else rows = await GetRowsFullsScanStrategy(columnName, value);
 				}
 				else
@@ -57,7 +64,7 @@ namespace BtreeIndexProject.Services.QueryExecution
 				}
 
 				var result = new QueryResult();
-				result.Columns = _metaDataManager.GetTableColumns(_tableName).OrderBy(c=>c.Order).Select(c => c.Name).ToArray();
+				result.Columns = tableColumns.Select(c => c.Name).ToArray();
 				result.TableRows = new Dictionary<string, string>[rows.Count];
 				for (var rowIndex = 0; rowIndex < rows.Count; rowIndex++)
 				{
@@ -73,7 +80,7 @@ namespace BtreeIndexProject.Services.QueryExecution
 			}
 			catch (Exception ex)
 			{
-				return new IndexCreateFailResult(ex.Message);
+				return new InvalidSyntaxResult(ex.Message);
 			}
 		}
 
@@ -93,6 +100,7 @@ namespace BtreeIndexProject.Services.QueryExecution
 			while (await tableReader.ReadAsync(byteBuffer, 0, RowSize) > 0)
 			{
 				var row = Encoding.UTF8.GetString(byteBuffer);
+				byteBuffer = new byte[RowSize];
 				if (row == null) continue;
 				var cells = row.Split(';');
 				if(columnIndex == null || columnIndex != null && cells[columnIndex.Value].Trim() == value) rows.Add(cells);

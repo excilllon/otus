@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using BtreeIndexProject.Abstractions;
+﻿using BtreeIndexProject.Model.QueryExecution;
 
 namespace BtreeIndexProject.Services.Results
 {
@@ -11,7 +6,7 @@ namespace BtreeIndexProject.Services.Results
 	{
 		public IndexCreateFailResult(string message)
 		{
-			ErrorMessage = message;
+			ErrorMessage = "Ошибка при создании индекса: " +  message;
 		}
 	}
 }

@@ -1,8 +1,9 @@
-using BtreeIndexProject.Abstractions;
 using BtreeIndexProject.Abstractions.Indexing;
-using BtreeIndexProject.Services;
+using BtreeIndexProject.Abstractions.MetaData;
+using BtreeIndexProject.Abstractions.QueryExecution;
 using BtreeIndexProject.Services.BackgroundServices;
 using BtreeIndexProject.Services.Indexing;
+using BtreeIndexProject.Services.MetaData;
 using BtreeIndexProject.Services.QueryExecution;
 
 var builder = WebApplication.CreateBuilder(args);
