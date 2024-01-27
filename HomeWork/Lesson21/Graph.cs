@@ -38,7 +38,6 @@
             while (!queue.Empty())
             {
                 var nextVertex = queue.Dequeue();
-                if(_adjVec.Length <= nextVertex.value) break;
 
                 foreach(var adjVertex in _adjVec[nextVertex.value])
                 {
